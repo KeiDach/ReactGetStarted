@@ -1,5 +1,5 @@
 const Stars = (props) => {
-    const numberOfStars = 1 + Math.floor( Math.random() * 9);
+    // const numberOfStars = 1 + Math.floor( Math.random() * 9);
 
     // let stars = [];
 
@@ -9,7 +9,7 @@ const Stars = (props) => {
 
     return (
         <div className="col-5">
-            {_.range(numberOfStars).map(i =>
+            {_.range(props.numberOfStars).map(i =>
                 <i key={i} className="fa fa-star"></i>
             )}
         </div>
@@ -19,7 +19,9 @@ const Stars = (props) => {
 const Button = (props) => {
     return (
         <div className="col-2">
-            <button>=</button>
+            <button className="btn" disabled={props.selectedNumbers.length === 0}>
+                =
+            </button>
         </div>
     );
 }
@@ -27,20 +29,30 @@ const Button = (props) => {
 const Answer = (props) => {
     return (
         <div className="col-5">
-            <span>5</span>
-            <span>6</span>
+            {props.selectedNumbers.map((number, i) => 
+                <span key={i} onClick={() => props.unselectNumber(number)}>
+                    {number}
+                </span>)}
         </div>
     );
 }
 
 const Numbers = (props) => {
     //const arrayOfNumber = _.range(1, 10);
+    const numberClassName = (number) => {
+        if (props.selectedNumbers.indexOf(number) >= 0) {
+            return 'selected';
+        }
+    }   
 
     return (
         <div className="card text-center">
             <div>
                 {Numbers.list.map((number, i) =>
-                    <span key = {i}>{number}</span>
+                    <span key={i} className={numberClassName(number)}
+                        onClick={() => props.selectNumber(number)}>
+                        {number}
+                    </span>
                 )}
             </div>
         </div>
@@ -50,17 +62,42 @@ const Numbers = (props) => {
 Numbers.list = _.range(1, 10);
 
 class Game extends React.Component {
+    state = {
+        selectedNumbers: [],
+        randomNumberOfStars:  1 + Math.floor( Math.random() * 9),
+    };
+
+    selectNumber = (clickedNumber) => {
+        if (this.state.selectedNumbers.indexOf(clickedNumber) >= 0) {
+            return;
+        }
+        this.setState(prevState => ({
+            selectedNumbers: prevState.selectedNumbers.concat(clickedNumber)
+        }));
+    }
+
+    unselectNumber= (clickedNumber) => {
+        this.setState(prevState => ({
+            selectedNumbers: prevState.selectedNumbers
+                .filter(number => number !== clickedNumber)
+        }));
+    }
+
     render() {
+        const { selectedNumbers, randomNumberOfStars } = this.state;
+
         return (
             <div className="container">
             <hr />
                 <h3>Play Nine</h3>
                 <div className="row">
-                	<Stars />
-                    <Button />
-                    <Answer />  
+                	<Stars numberOfStars={randomNumberOfStars} />
+                    <Button selectedNumbers={selectedNumbers}/>
+                    <Answer selectedNumbers={selectedNumbers} 
+                        unselectNumber={this.unselectNumber}/>  
                 </div>
-                <Numbers />
+                <Numbers selectedNumbers={selectedNumbers} 
+                    selectNumber={this.selectNumber}/>
             </div>
         );
     }
